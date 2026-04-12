@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   // Период: 1h, 6h, 24h, 7d, 30d (по умолчанию 24h)
   const period = searchParams.get("period") || "24h";
 
-  const intervals = {
+  const intervals: Record<string, string> = {
     "1h": "1 hour",
     "6h": "6 hours",
     "24h": "24 hours",
@@ -15,7 +15,7 @@ export async function GET(request: Request) {
     "30d": "30 days",
   };
 
-  const interval = intervals[period] || "24 hours";
+  const interval = intervals[period] ?? "24 hours";
 
   try {
     const sql = getDb();
@@ -49,7 +49,7 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error("Stats error:", error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

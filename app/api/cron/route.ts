@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getDb, initDb } from "@/lib/db";
 import { fetchVisitorCount } from "@/lib/fetcher";
 
-function authorize(request) {
+function authorize(request: Request) {
   const token = request.headers.get("authorization")?.replace("Bearer ", "");
   if (!token || token !== process.env.CRON_SECRET) {
     return false;
@@ -35,10 +35,10 @@ export async function GET(request: Request) {
       visitors: count,
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Cron error:", error);
     return NextResponse.json(
-      { error: error.message },
+      { error: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
