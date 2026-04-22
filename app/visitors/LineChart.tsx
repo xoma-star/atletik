@@ -2,18 +2,21 @@
 
 import {LineChart as ReLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 import {useChartContext} from './ChartContext';
+import {useT, useLocale} from './LocaleContext';
 import {fmtDateTime, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE, TOOLTIP_ITEM_STYLE} from './utils';
 
 export function LineChart() {
   const {rangeData, loading} = useChartContext();
+  const t = useT();
+  const locale = useLocale();
 
-  const data = rangeData.map((p) => ({...p, label: fmtDateTime(p.time)}));
+  const data = rangeData.map((p) => ({...p, label: fmtDateTime(p.time, locale)}));
 
   return (
-    <div className="rounded-xl p-4 border border-on-surface">
+    <section aria-label={t.visitors} className="rounded-xl p-4 border border-on-surface">
       {data.length === 0 ? (
         <p className="text-center py-16 text-sm text-on-surface">
-          {loading ? 'Загрузка данных…' : 'Нет данных за выбранный период'}
+          {loading ? t.loading : t.noPeriodData}
         </p>
       ) : (
         <ResponsiveContainer width="100%" height={280}>
@@ -34,7 +37,7 @@ export function LineChart() {
             <Line
               type="monotone"
               dataKey="visitors"
-              name="Посетители"
+              name={t.visitors}
               stroke="var(--on-surface)"
               strokeWidth={2}
               dot={false}
@@ -44,6 +47,6 @@ export function LineChart() {
           </ReLineChart>
         </ResponsiveContainer>
       )}
-    </div>
+    </section>
   );
 }

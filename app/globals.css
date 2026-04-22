@@ -28,3 +28,9 @@ body {
 input[type='date'] {
   color-scheme: light dark;
 }
+
+/* убираем кольцо только при клике/касании, при клавиатурной навигации оставляем */
+.recharts-wrapper:focus:not(:focus-visible),
+.recharts-wrapper *:focus:not(:focus-visible) {
+  outline: none;
+}

@@ -2,10 +2,12 @@
 
 import {QUICK_FILTERS} from './utils';
 import {useChartContext} from './ChartContext';
+import {useT} from './LocaleContext';
 
 export function FilterBar() {
   const {from, to, maxTo, activeFilter, loading, handleFromChange, handleToChange, handleApply, handleQuickFilter} =
     useChartContext();
+  const t = useT();
 
   const activeStyle = {background: 'var(--on-surface)', color: 'var(--surface)'};
   const inactiveStyle = {background: 'var(--surface)', color: 'var(--on-surface)'};
@@ -16,12 +18,12 @@ export function FilterBar() {
       <div className="flex gap-1">
         {QUICK_FILTERS.map((f) => (
           <button
-            key={f.label}
+            key={f.key}
             onClick={() => handleQuickFilter(f)}
             className="rounded-md px-3 py-1.5 text-sm font-medium border border-on-surface transition-colors"
-            style={activeFilter === f.label ? activeStyle : inactiveStyle}
+            style={activeFilter === f.key ? activeStyle : inactiveStyle}
           >
-            {f.label}
+            {t[f.key]}
           </button>
         ))}
       </div>
@@ -31,7 +33,7 @@ export function FilterBar() {
       {/* Диапазон дат */}
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-sm text-on-surface">
-          С
+          {t.dateFrom}
           <input
             type="date"
             value={from}
@@ -41,7 +43,7 @@ export function FilterBar() {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm text-on-surface">
-          По
+          {t.dateTo}
           <input
             type="date"
             value={to}
@@ -56,7 +58,7 @@ export function FilterBar() {
           disabled={loading}
           className="rounded-md px-4 py-1.5 text-sm font-medium bg-on-surface text-surface disabled:opacity-50"
         >
-          {loading ? 'Загрузка…' : 'Применить'}
+          {loading ? t.applying : t.apply}
         </button>
       </div>
     </div>

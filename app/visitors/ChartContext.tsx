@@ -1,17 +1,19 @@
 'use client';
 
 import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
-import {MAX_DAYS, QUICK_FILTERS, QuickFilter, toDateInput, addDays, tzOffset, RangePoint, HourlyPoint} from './utils';
+import {MAX_DAYS, QUICK_FILTERS, QuickFilter, FilterKey, toDateInput, addDays, tzOffset, RangePoint, HourlyPoint} from './utils';
+
+type ErrorState = {message: string; retry: (() => void) | null} | null;
 
 type ChartContextValue = {
   from: string;
   to: string;
   maxTo: string;
-  activeFilter: string;
+  activeFilter: FilterKey | '';
   rangeData: RangePoint[];
   hourlyData: HourlyPoint[];
   loading: boolean;
-  error: string | null;
+  error: ErrorState;
   dismissError: () => void;
   handleFromChange: (v: string) => void;
   handleToChange: (v: string) => void;
@@ -32,21 +34,24 @@ export function useChartContext(): ChartContextValue {
 type InitialData = {
   rangeData: RangePoint[];
   hourlyData: HourlyPoint[];
+  initialError?: string | null;
 };
 
-function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly}: InitialData): ChartContextValue {
+function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, initialError}: InitialData): ChartContextValue {
   const [from, setFrom] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() - 7);
     return toDateInput(d);
   });
   const [to, setTo] = useState(() => toDateInput(new Date()));
-  const [activeFilter, setActiveFilter] = useState('Неделя');
+  const [activeFilter, setActiveFilter] = useState<FilterKey | ''>('week');
 
   const [rangeData, setRangeData] = useState<RangePoint[]>(initialRange);
   const [hourlyData, setHourlyData] = useState<HourlyPoint[]>(initialHourly);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState>(
+    initialError ? {message: initialError, retry: () => window.location.reload()} : null
+  );
 
   const fetchRange = useCallback(async (f: string, t: string) => {
     setLoading(true);
@@ -62,7 +67,8 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly}: I
       if (!res.ok) throw new Error(json.error ?? 'Неизвестная ошибка');
       setRangeData(json.data ?? []);
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const message = e instanceof Error ? e.message : String(e);
+      setError({message, retry: () => fetchRange(f, t)});
     } finally {
       setLoading(false);
     }
@@ -88,6 +94,7 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly}: I
 
   const dismissError = useCallback(() => setError(null), []);
 
+
   const handleFromChange = useCallback((v: string) => {
     setFrom(v);
     setActiveFilter('');
@@ -109,7 +116,7 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly}: I
       const range = f.range();
       setFrom(range.from);
       setTo(range.to);
-      setActiveFilter(f.label);
+      setActiveFilter(f.key);
       fetchRange(range.from, range.to);
     },
     [fetchRange]

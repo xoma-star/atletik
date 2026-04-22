@@ -3,7 +3,7 @@ export type HourlyPoint = {hour: number; avg: number};
 
 export const MAX_DAYS = 31;
 
-export const DAY_NAMES = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'] as const;
+export type FilterKey = 'today' | 'week' | 'month';
 
 export function toDateInput(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -23,8 +23,8 @@ export function tzOffset(): string {
   return `${sign}${hh}:${mm}`;
 }
 
-export function fmtDateTime(iso: string): string {
-  return new Date(iso).toLocaleString('ru-RU', {
+export function fmtDateTime(iso: string, locale?: string): string {
+  return new Date(iso).toLocaleString(locale, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -36,16 +36,16 @@ export function fmtHour(h: number): string {
   return `${String(h).padStart(2, '0')}:00`;
 }
 
-export const QUICK_FILTERS = [
+export const QUICK_FILTERS: {key: FilterKey; range: () => {from: string; to: string}}[] = [
   {
-    label: 'Сегодня',
+    key: 'today',
     range: () => {
       const t = toDateInput(new Date());
       return {from: t, to: t};
     }
   },
   {
-    label: 'Неделя',
+    key: 'week',
     range: () => {
       const to = new Date();
       const from = new Date(to);
@@ -54,7 +54,7 @@ export const QUICK_FILTERS = [
     }
   },
   {
-    label: 'Месяц',
+    key: 'month',
     range: () => {
       const to = new Date();
       const from = new Date(to);
@@ -62,7 +62,7 @@ export const QUICK_FILTERS = [
       return {from: toDateInput(from), to: toDateInput(to)};
     }
   }
-] as const;
+];
 
 export type QuickFilter = (typeof QUICK_FILTERS)[number];
 
