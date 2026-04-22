@@ -5,19 +5,55 @@ import {useChartContext} from './ChartContext';
 import {useT, useLocale} from './LocaleContext';
 import {fmtHour, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE, TOOLTIP_ITEM_STYLE} from './utils';
 
+// Воскресенье = 0, понедельник = 1, ... — стандарт JS
+// Берём 7 дат, начиная с воскресенья 2021-01-03
+const EPOCH_SUNDAY = new Date(2021, 0, 3);
+
+function getDayLabel(dow: number, locale: string, format: 'short' | 'long'): string {
+  const d = new Date(EPOCH_SUNDAY);
+  d.setDate(d.getDate() + dow);
+  return new Intl.DateTimeFormat(locale, {weekday: format}).format(d);
+}
+
+// Первый день недели по локали (0 = вс, 1 = пн)
+const WEEK_FIRST_DAY: Partial<Record<string, number>> = {ru: 1};
+
+function getWeekDays(locale: string): number[] {
+  const first = WEEK_FIRST_DAY[locale] ?? 0;
+  return Array.from({length: 7}, (_, i) => (first + i) % 7);
+}
+
 export function BarChart() {
-  const {hourlyData} = useChartContext();
+  const {hourlyData, selectedDow, handleDowChange} = useChartContext();
   const t = useT();
   const locale = useLocale();
 
   const data = hourlyData.map((p) => ({...p, label: fmtHour(p.hour)}));
-  const today = new Intl.DateTimeFormat(locale, {weekday: 'long'}).format(new Date());
+  const todayDow = new Date().getDay();
+
+  const activeStyle = {background: 'var(--on-surface)', color: 'var(--surface)'};
+  const inactiveStyle = {background: 'var(--surface)', color: 'var(--on-surface)'};
 
   return (
     <section className="rounded-xl p-4 border border-on-surface">
-      <h2 className="text-base font-semibold mb-4 text-on-surface">
-        {t.avgLoadToday} <span className="text-sm font-normal">({today})</span>
-      </h2>
+      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+        <h2 className="text-base font-semibold text-on-surface">
+          {t.avgLoad} <span className="text-sm font-normal">({getDayLabel(selectedDow, locale, 'long')})</span>
+        </h2>
+        <div className="flex gap-1">
+          {getWeekDays(locale).map((i) => (
+            <button
+              key={i}
+              onClick={() => handleDowChange(i)}
+              className="rounded-md px-2 py-1 text-xs font-medium border border-on-surface transition-colors"
+              style={selectedDow === i ? activeStyle : inactiveStyle}
+              aria-current={i === todayDow ? 'date' : undefined}
+            >
+              {getDayLabel(i, locale, 'short')}
+            </button>
+          ))}
+        </div>
+      </div>
       {data.length === 0 ? (
         <p className="text-center py-16 text-sm text-on-surface">{t.noData}</p>
       ) : (

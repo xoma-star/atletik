@@ -12,6 +12,7 @@ type ChartContextValue = {
   activeFilter: FilterKey | '';
   rangeData: RangePoint[];
   hourlyData: HourlyPoint[];
+  selectedDow: number;
   loading: boolean;
   error: ErrorState;
   dismissError: () => void;
@@ -19,6 +20,7 @@ type ChartContextValue = {
   handleToChange: (v: string) => void;
   handleApply: () => void;
   handleQuickFilter: (f: QuickFilter) => void;
+  handleDowChange: (dow: number) => void;
 };
 
 const ChartContext = createContext<ChartContextValue | null>(null);
@@ -48,6 +50,7 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, in
 
   const [rangeData, setRangeData] = useState<RangePoint[]>(initialRange);
   const [hourlyData, setHourlyData] = useState<HourlyPoint[]>(initialHourly);
+  const [selectedDow, setSelectedDow] = useState(() => new Date().getDay());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorState>(
     initialError ? {message: initialError, retry: () => window.location.reload()} : null
@@ -74,9 +77,8 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, in
     }
   }, []);
 
-  const fetchHourly = useCallback(async () => {
+  const fetchHourly = useCallback(async (dow: number) => {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const dow = new Date().getDay();
     try {
       const res = await fetch(`/api/stats/hourly-avg?dow=${dow}&tz=${encodeURIComponent(tz)}`);
       if (res.ok) setHourlyData((await res.json()).data ?? []);
@@ -87,8 +89,16 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, in
 
   // После гидрации тихо обновляем часовой график с timezone пользователя
   useEffect(() => {
-    fetchHourly();
+    fetchHourly(new Date().getDay());
   }, [fetchHourly]);
+
+  const handleDowChange = useCallback(
+    (dow: number) => {
+      setSelectedDow(dow);
+      fetchHourly(dow);
+    },
+    [fetchHourly]
+  );
 
   const maxTo = useMemo(() => addDays(from, MAX_DAYS), [from]);
 
@@ -129,13 +139,15 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, in
     activeFilter,
     rangeData,
     hourlyData,
+    selectedDow,
     loading,
     error,
     dismissError,
     handleFromChange,
     handleToChange,
     handleApply,
-    handleQuickFilter
+    handleQuickFilter,
+    handleDowChange
   };
 }
 
