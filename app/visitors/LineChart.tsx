@@ -8,7 +8,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  type TooltipProps
+  type TooltipContentProps,
+  type TooltipPayloadEntry,
+  type DotItemDotProps
 } from 'recharts';
 import {useChartContext} from './ChartContext';
 import {useT, useLocale} from './LocaleContext';
@@ -29,10 +31,10 @@ type LinePoint = {
   projected: number | null;
 };
 
-function LineTooltip({active, payload, label, t}: TooltipProps<number, string> & {t: Translations}) {
+function LineTooltip({active, payload, label, t}: TooltipContentProps & {t: Translations}) {
   if (!active || !payload?.length) return null;
-  const real = payload.find((p) => p.dataKey === 'visitors' && p.value != null);
-  const proj = payload.find((p) => p.dataKey === 'projected' && p.value != null);
+  const real = payload.find((p: TooltipPayloadEntry) => p.dataKey === 'visitors' && p.value != null);
+  const proj = payload.find((p: TooltipPayloadEntry) => p.dataKey === 'projected' && p.value != null);
   const item = real ?? proj;
   if (!item) return null;
   return (
@@ -101,8 +103,6 @@ function buildLineData(
   return [...filtered.slice(0, -1), {...lastPoint, projected: lastVisitors}, ...projected];
 }
 
-type DotProps = {cx?: number; cy?: number; index?: number};
-
 function PulsingDot({cx, cy}: {cx: number; cy: number}) {
   return (
     <g>
@@ -123,9 +123,9 @@ export function LineChart() {
   const data = buildLineData(rangeData, to, activeFilter, locale);
   const lastRealIdx = data.reduce((acc, p, i) => (p.visitors !== null ? i : acc), -1);
 
-  const renderDot = ({cx, cy, index}: DotProps) => {
+  const renderDot = ({cx, cy, index}: DotItemDotProps) => {
     if (index !== lastRealIdx || cx == null || cy == null) return <g key={index} />;
-    return <PulsingDot key={index} cx={cx} cy={cy} />;
+    return <PulsingDot key={index} cx={cx as number} cy={cy as number} />;
   };
 
   return (
@@ -150,7 +150,7 @@ export function LineChart() {
               name={t.visitors}
               stroke="var(--on-surface)"
               strokeWidth={2}
-              dot={renderDot as any}
+              dot={renderDot}
               activeDot={{r: 4}}
               isAnimationActive={false}
               connectNulls={false}
