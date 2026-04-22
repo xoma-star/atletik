@@ -1,7 +1,17 @@
 'use client';
 
 import {createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode} from 'react';
-import {MAX_DAYS, QUICK_FILTERS, QuickFilter, FilterKey, toDateInput, addDays, tzOffset, RangePoint, HourlyPoint} from './utils';
+import {
+  MAX_DAYS,
+  QUICK_FILTERS,
+  QuickFilter,
+  FilterKey,
+  toDateInput,
+  addDays,
+  tzOffset,
+  RangePoint,
+  HourlyPoint
+} from './utils';
 
 type ErrorState = {message: string; retry: (() => void) | null} | null;
 
@@ -39,14 +49,14 @@ type InitialData = {
   initialError?: string | null;
 };
 
-function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, initialError}: InitialData): ChartContextValue {
-  const [from, setFrom] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() - 7);
-    return toDateInput(d);
-  });
+function useVisitorChart({
+  rangeData: initialRange,
+  hourlyData: initialHourly,
+  initialError
+}: InitialData): ChartContextValue {
+  const [from, setFrom] = useState(() => toDateInput(new Date()));
   const [to, setTo] = useState(() => toDateInput(new Date()));
-  const [activeFilter, setActiveFilter] = useState<FilterKey | ''>('week');
+  const [activeFilter, setActiveFilter] = useState<FilterKey | ''>('today');
 
   const [rangeData, setRangeData] = useState<RangePoint[]>(initialRange);
   const [hourlyData, setHourlyData] = useState<HourlyPoint[]>(initialHourly);
@@ -87,10 +97,13 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, in
     }
   }, []);
 
-  // После гидрации тихо обновляем часовой график с timezone пользователя
+  // После гидрации обновляем данные с timezone клиента
   useEffect(() => {
+    const todayStr = toDateInput(new Date());
+    fetchRange(todayStr, todayStr);
     fetchHourly(new Date().getDay());
-  }, [fetchHourly]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDowChange = useCallback(
     (dow: number) => {
@@ -100,10 +113,13 @@ function useVisitorChart({rangeData: initialRange, hourlyData: initialHourly, in
     [fetchHourly]
   );
 
-  const maxTo = useMemo(() => addDays(from, MAX_DAYS), [from]);
+  const maxTo = useMemo(() => {
+    const todayStr = toDateInput(new Date());
+    const absolute = addDays(from, MAX_DAYS);
+    return absolute < todayStr ? absolute : todayStr;
+  }, [from]);
 
   const dismissError = useCallback(() => setError(null), []);
-
 
   const handleFromChange = useCallback((v: string) => {
     setFrom(v);

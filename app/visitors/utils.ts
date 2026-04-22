@@ -2,6 +2,7 @@ export type RangePoint = {visitors: number; time: string};
 export type HourlyPoint = {hour: number; avg: number};
 
 export const MAX_DAYS = 31;
+export const OPEN_HOUR = 7; // зал открыт с 07:00
 
 export type FilterKey = 'today' | 'week' | 'month';
 

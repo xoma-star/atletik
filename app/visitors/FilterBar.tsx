@@ -1,6 +1,6 @@
 'use client';
 
-import {QUICK_FILTERS} from './utils';
+import {QUICK_FILTERS, toDateInput} from './utils';
 import {useChartContext} from './ChartContext';
 import {useT} from './LocaleContext';
 
@@ -9,6 +9,7 @@ export function FilterBar() {
     useChartContext();
   const t = useT();
 
+  const today = toDateInput(new Date());
   const activeStyle = {background: 'var(--on-surface)', color: 'var(--surface)'};
   const inactiveStyle = {background: 'var(--surface)', color: 'var(--on-surface)'};
 
@@ -37,7 +38,7 @@ export function FilterBar() {
           <input
             type="date"
             value={from}
-            max={to}
+            max={today}
             onChange={(e) => handleFromChange(e.target.value)}
             className="rounded-md border border-on-surface bg-surface text-on-surface px-3 py-1.5 text-sm outline-none"
           />

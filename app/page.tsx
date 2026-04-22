@@ -3,6 +3,7 @@ import {headers} from 'next/headers';
 import {getStats, getStatsByRange, getHourlyAvgByDayOfWeek} from '@/lib/stats';
 import {detectLocale, getTranslations} from '@/lib/i18n';
 import {VisitorsWidget} from './visitors';
+import {LastUpdatedAt} from './visitors/LastUpdatedAt';
 
 export const metadata: Metadata = {
   title: 'Посетители',
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const now = new Date();
-  const weekAgo = new Date(now);
-  weekAgo.setDate(weekAgo.getDate() - 7);
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
 
   const acceptLanguage = (await headers()).get('accept-language');
   const locale = detectLocale(acceptLanguage);
@@ -27,7 +28,7 @@ export default async function Home() {
   try {
     const [stats, rangeData, hourlyData] = await Promise.all([
       getStats(),
-      getStatsByRange(weekAgo.toISOString(), now.toISOString()),
+      getStatsByRange(todayStart.toISOString(), now.toISOString()),
       getHourlyAvgByDayOfWeek(now.getUTCDay())
     ]);
     current = stats.current;
@@ -38,15 +39,6 @@ export default async function Home() {
     initialError = e instanceof Error ? e.message : String(e);
   }
 
-  const updatedAt = lastUpdated
-    ? new Date(lastUpdated).toLocaleString(locale, {
-        day: 'numeric',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : null;
-
   return (
     <main className="min-h-screen px-6 py-10 md:px-12 md:py-14">
       <div className="mx-auto max-w-4xl flex flex-col gap-8">
@@ -55,20 +47,25 @@ export default async function Home() {
             <h1 className="text-2xl font-bold text-on-surface">{t.visitors}</h1>
             <div className="flex items-baseline gap-3">
               {current !== null && (
-                <span className="text-3xl font-bold tabular-nums text-on-surface" aria-label={`${t.visitors}: ${current}`}>
+                <span
+                  className="text-3xl font-bold tabular-nums text-on-surface"
+                  aria-label={`${t.visitors}: ${current}`}
+                >
                   {current}
                 </span>
               )}
-              {updatedAt && (
-                <time className="text-sm text-on-surface" dateTime={lastUpdated ? new Date(lastUpdated).toISOString() : undefined}>
-                  {t.updatedAt} {updatedAt}
-                </time>
-              )}
+              {lastUpdated && <LastUpdatedAt lastUpdated={lastUpdated} locale={locale} t={t} />}
             </div>
           </div>
         </header>
 
-        <VisitorsWidget initialRangeData={initialRangeData} initialHourlyData={initialHourlyData} initialError={initialError} locale={locale} t={t} />
+        <VisitorsWidget
+          initialRangeData={initialRangeData}
+          initialHourlyData={initialHourlyData}
+          initialError={initialError}
+          locale={locale}
+          t={t}
+        />
       </div>
     </main>
   );

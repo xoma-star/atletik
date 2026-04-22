@@ -3,7 +3,7 @@
 import {BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
 import {useChartContext} from './ChartContext';
 import {useT, useLocale} from './LocaleContext';
-import {fmtHour, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE, TOOLTIP_ITEM_STYLE} from './utils';
+import {fmtHour, OPEN_HOUR, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE, TOOLTIP_ITEM_STYLE} from './utils';
 
 // Воскресенье = 0, понедельник = 1, ... — стандарт JS
 // Берём 7 дат, начиная с воскресенья 2021-01-03
@@ -28,7 +28,7 @@ export function BarChart() {
   const t = useT();
   const locale = useLocale();
 
-  const data = hourlyData.map((p) => ({...p, label: fmtHour(p.hour)}));
+  const data = hourlyData.filter((p) => p.hour >= OPEN_HOUR).map((p) => ({...p, label: fmtHour(p.hour)}));
   const todayDow = new Date().getDay();
 
   const activeStyle = {background: 'var(--on-surface)', color: 'var(--surface)'};
