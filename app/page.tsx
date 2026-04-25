@@ -3,7 +3,6 @@ import {headers} from 'next/headers';
 import {getStats, getStatsByRange, getHourlyAvgByDayOfWeek} from '@/lib/stats';
 import {detectLocale, getTranslations} from '@/lib/i18n';
 import {VisitorsWidget} from './visitors';
-import {LastUpdatedAt} from './visitors/LastUpdatedAt';
 
 export const metadata: Metadata = {
   title: 'Посетители',
@@ -40,33 +39,16 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen px-6 py-10 md:px-12 md:py-14">
-      <div className="mx-auto max-w-4xl flex flex-col gap-8">
-        <header>
-          <div className="flex flex-wrap items-baseline justify-between gap-4">
-            <h1 className="text-2xl font-bold text-on-surface">{t.visitors}</h1>
-            <div className="flex items-baseline gap-3">
-              {current !== null && (
-                <span
-                  className="text-3xl font-bold tabular-nums text-on-surface"
-                  aria-label={`${t.visitors}: ${current}`}
-                >
-                  {current}
-                </span>
-              )}
-              {lastUpdated && <LastUpdatedAt lastUpdated={lastUpdated} locale={locale} t={t} />}
-            </div>
-          </div>
-        </header>
-
-        <VisitorsWidget
-          initialRangeData={initialRangeData}
-          initialHourlyData={initialHourlyData}
-          initialError={initialError}
-          locale={locale}
-          t={t}
-        />
-      </div>
+    <main className="min-h-screen">
+      <VisitorsWidget
+        initialRangeData={initialRangeData}
+        initialHourlyData={initialHourlyData}
+        initialError={initialError}
+        initialCurrent={current}
+        initialLastUpdated={lastUpdated}
+        locale={locale}
+        t={t}
+      />
     </main>
   );
 }

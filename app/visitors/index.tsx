@@ -2,6 +2,8 @@
 
 import {ChartProvider} from './ChartContext';
 import {LocaleProvider} from './LocaleContext';
+import {Header} from './Header';
+import {HeroBlock} from './HeroBlock';
 import {FilterBar} from './FilterBar';
 import {ErrorBanner} from './ErrorBanner';
 import {LineChart} from './LineChart';
@@ -13,15 +15,35 @@ type Props = {
   initialRangeData: RangePoint[];
   initialHourlyData: HourlyPoint[];
   initialError: string | null;
+  initialCurrent: number | null;
+  initialLastUpdated: string | null;
   locale: Locale;
   t: Translations;
 };
 
-export function VisitorsWidget({initialRangeData, initialHourlyData, initialError, locale, t}: Props) {
+export function VisitorsWidget({
+  initialRangeData,
+  initialHourlyData,
+  initialError,
+  initialCurrent,
+  initialLastUpdated,
+  locale,
+  t
+}: Props) {
   return (
     <LocaleProvider locale={locale} t={t}>
-      <ChartProvider initialData={{rangeData: initialRangeData, hourlyData: initialHourlyData, initialError}}>
-        <div className="flex flex-col gap-8">
+      <ChartProvider
+        initialData={{
+          rangeData: initialRangeData,
+          hourlyData: initialHourlyData,
+          initialError,
+          initialCurrent,
+          initialLastUpdated
+        }}
+      >
+        <div className="pt-8 px-5 pb-10 md:pt-14 md:px-16 md:pb-16">
+          <Header />
+          <HeroBlock />
           <FilterBar />
           <ErrorBanner />
           <LineChart />

@@ -1,12 +1,10 @@
 'use client';
 
-import {BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
+import {useRef, useState, useEffect} from 'react';
 import {useChartContext} from './ChartContext';
 import {useT, useLocale} from './LocaleContext';
-import {fmtHour, OPEN_HOUR, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE, TOOLTIP_ITEM_STYLE} from './utils';
+import {OPEN_HOUR} from './utils';
 
-// Воскресенье = 0, понедельник = 1, ... — стандарт JS
-// Берём 7 дат, начиная с воскресенья 2021-01-03
 const EPOCH_SUNDAY = new Date(2021, 0, 3);
 
 function getDayLabel(dow: number, locale: string, format: 'short' | 'long'): string {
@@ -15,7 +13,6 @@ function getDayLabel(dow: number, locale: string, format: 'short' | 'long'): str
   return new Intl.DateTimeFormat(locale, {weekday: format}).format(d);
 }
 
-// Первый день недели по локали (0 = вс, 1 = пн)
 const WEEK_FIRST_DAY: Partial<Record<string, number>> = {ru: 1};
 
 function getWeekDays(locale: string): number[] {
@@ -23,59 +20,144 @@ function getWeekDays(locale: string): number[] {
   return Array.from({length: 7}, (_, i) => (first + i) % 7);
 }
 
+type TooltipState = {svgX: number; svgY: number; hour: number; avg: number} | null;
+
+const Y_TICKS = [0, 25, 50, 75, 100];
+
 export function BarChart() {
   const {hourlyData, selectedDow, handleDowChange} = useChartContext();
   const t = useT();
   const locale = useLocale();
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [cw, setCw] = useState(960);
+  const [tooltip, setTooltip] = useState<TooltipState>(null);
 
-  const data = hourlyData.filter((p) => p.hour >= OPEN_HOUR).map((p) => ({...p, label: fmtHour(p.hour)}));
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([e]) => setCw(e.contentRect.width));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const isMobile = cw < 640;
+  const W = isMobile ? 640 : 1000;
+  const H = isMobile ? 200 : 220;
+  const PAD_L = isMobile ? 36 : 48;
+  const PAD_R = isMobile ? 10 : 16;
+  const PAD_T = 16,
+    PAD_B = 36;
+  const iw = W - PAD_L - PAD_R;
+  const ih = H - PAD_T - PAD_B;
+
+  const data = hourlyData.filter((p) => p.hour >= OPEN_HOUR);
+  const n = data.length;
+  const step = n > 0 ? iw / n : iw;
+  const bw = step * 0.55;
+  const yFor = (v: number) => PAD_T + ih - (v / 100) * ih;
+
+  const sectionPad = isMobile ? 12 : 18;
+  const mono = 'var(--font-geist-mono), monospace';
+  const weekDays = getWeekDays(locale);
   const todayDow = new Date().getDay();
 
-  const activeStyle = {background: 'var(--on-surface)', color: 'var(--surface)'};
-  const inactiveStyle = {background: 'var(--surface)', color: 'var(--on-surface)'};
-
   return (
-    <section className="rounded-xl p-4 border border-on-surface">
-      <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
-        <h2 className="text-base font-semibold text-on-surface">
-          {t.avgLoad} <span className="text-sm font-normal">({getDayLabel(selectedDow, locale, 'long')})</span>
-        </h2>
-        <div className="flex gap-1">
-          {getWeekDays(locale).map((i) => (
+    <section ref={containerRef} className="border border-on-surface bg-surface" style={{padding: sectionPad}}>
+      <div className="flex justify-between items-center mb-3 gap-3 flex-wrap">
+        <div className="font-mono text-[10px] md:text-[11px] tracking-[0.08em] uppercase">
+          {t.avgLoad} · <span className="opacity-60">({getDayLabel(selectedDow, locale, 'long')})</span>
+        </div>
+        <div className="flex border border-on-surface">
+          {weekDays.map((dow, i) => (
             <button
-              key={i}
-              onClick={() => handleDowChange(i)}
-              className="rounded-md px-2 py-1 text-xs font-medium border border-on-surface transition-colors"
-              style={selectedDow === i ? activeStyle : inactiveStyle}
-              aria-current={i === todayDow ? 'date' : undefined}
+              key={dow}
+              onClick={() => handleDowChange(dow)}
+              aria-current={dow === todayDow ? 'date' : undefined}
+              className={`font-mono text-[10px] uppercase cursor-pointer border-none ${
+                selectedDow === dow ? 'bg-on-surface text-surface' : 'bg-transparent text-on-surface'
+              }`}
+              style={{
+                padding: isMobile ? '4px 7px' : '5px 10px',
+                borderLeft: i === 0 ? 'none' : '1px solid var(--on-surface)'
+              }}
             >
-              {getDayLabel(i, locale, 'short')}
+              {getDayLabel(dow, locale, 'short')}
             </button>
           ))}
         </div>
       </div>
+
       {data.length === 0 ? (
-        <p className="text-center py-16 text-sm text-on-surface">{t.noData}</p>
+        <p className="text-center py-16 font-mono text-[11px]">{t.noData}</p>
       ) : (
-        <ResponsiveContainer width="100%" height={220}>
-          <ReBarChart data={data} margin={{top: 8, right: 16, left: 0, bottom: 8}}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--on-surface)" strokeWidth={0.4} vertical={false} />
-            <XAxis dataKey="label" tick={{fill: 'var(--on-surface)', fontSize: 11}} tickLine={false} />
-            <YAxis tick={{fill: 'var(--on-surface)', fontSize: 11}} tickLine={false} axisLine={false} width={40} />
-            <Tooltip
-              contentStyle={TOOLTIP_CONTENT_STYLE}
-              labelStyle={TOOLTIP_LABEL_STYLE}
-              itemStyle={TOOLTIP_ITEM_STYLE}
-            />
-            <Bar
-              dataKey="avg"
-              name={t.visitors}
-              fill="var(--on-surface)"
-              radius={[4, 4, 0, 0]}
-              isAnimationActive={false}
-            />
-          </ReBarChart>
-        </ResponsiveContainer>
+        <div className="relative">
+          <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{display: 'block'}} onMouseLeave={() => setTooltip(null)}>
+            {Y_TICKS.map((v) => (
+              <g key={v}>
+                <line
+                  x1={PAD_L}
+                  x2={W - PAD_R}
+                  y1={yFor(v)}
+                  y2={yFor(v)}
+                  stroke="var(--on-surface)"
+                  strokeWidth="0.4"
+                  strokeDasharray="2 3"
+                  opacity="0.5"
+                />
+                <text
+                  x={PAD_L - 8}
+                  y={yFor(v) + 3}
+                  textAnchor="end"
+                  fontFamily={mono}
+                  fontSize="10"
+                  fill="var(--on-surface)"
+                  opacity="0.7"
+                >
+                  {v}
+                </text>
+              </g>
+            ))}
+
+            {data.map((p, i) => {
+              const cx = PAD_L + step * i + step / 2;
+              const barH = Math.max(0, PAD_T + ih - yFor(p.avg));
+              const y = yFor(p.avg);
+              return (
+                <g key={p.hour} onMouseEnter={() => setTooltip({svgX: cx, svgY: y, hour: p.hour, avg: p.avg})}>
+                  <rect x={cx - bw / 2} y={y} width={bw} height={barH} fill="var(--on-surface)" />
+                  <text
+                    x={cx}
+                    y={PAD_T + ih + 18}
+                    textAnchor="middle"
+                    fontFamily={mono}
+                    fontSize="10"
+                    fill="var(--on-surface)"
+                    opacity="0.7"
+                  >
+                    {String(p.hour).padStart(2, '0')}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+
+          {tooltip && (
+            <div
+              className="absolute pointer-events-none border border-on-surface bg-surface font-mono text-[11px] whitespace-nowrap"
+              style={{
+                left: `${(tooltip.svgX / W) * 100}%`,
+                top: `${(tooltip.svgY / H) * 100}%`,
+                transform: 'translate(-50%, -100%) translateY(-8px)',
+                padding: '8px 12px'
+              }}
+            >
+              <div className="opacity-70">{String(tooltip.hour).padStart(2, '0')}:00</div>
+              <div>
+                {t.visitors}: {tooltip.avg}
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </section>
   );

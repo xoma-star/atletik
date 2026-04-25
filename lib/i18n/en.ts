@@ -15,7 +15,17 @@ const en: Translations = {
   applying: 'Loading…',
   avgLoad: 'Average load',
   closeError: 'Close',
-  retry: 'Retry'
+  retry: 'Retry',
+  statusFree: 'free',
+  statusModerate: 'moderate',
+  statusBusy: 'busy',
+  statusPeak: 'peak',
+  forecast: 'forecast · +1 hour',
+  nowInGym: 'now in gym',
+  capacityLabel: 'capacity',
+  fillPct: 'fill',
+  realLine: 'actual',
+  projLine: 'forecast'
 };
 
 export default en;

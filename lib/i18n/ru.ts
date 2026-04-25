@@ -13,9 +13,19 @@ const ru: Translations = {
   dateTo: 'По',
   apply: 'Применить',
   applying: 'Загрузка…',
-  avgLoad: 'Средняя загруженность',
+  avgLoad: 'Средняя загрузка',
   closeError: 'Закрыть',
-  retry: 'Повторить'
+  retry: 'Повторить',
+  statusFree: 'свободно',
+  statusModerate: 'умеренно',
+  statusBusy: 'людно',
+  statusPeak: 'пик',
+  forecast: 'прогноз · +1 час',
+  nowInGym: 'сейчас в зале',
+  capacityLabel: 'вместимость',
+  fillPct: 'заполнения',
+  realLine: 'реальные',
+  projLine: 'прогноз'
 };
 
 export default ru;

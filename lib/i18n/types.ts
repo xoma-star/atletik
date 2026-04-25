@@ -14,4 +14,14 @@ export type Translations = {
   avgLoad: string;
   closeError: string;
   retry: string;
+  statusFree: string;
+  statusModerate: string;
+  statusBusy: string;
+  statusPeak: string;
+  forecast: string;
+  nowInGym: string;
+  capacityLabel: string;
+  fillPct: string;
+  realLine: string;
+  projLine: string;
 };

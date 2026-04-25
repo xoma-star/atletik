@@ -5,59 +5,63 @@ import {useChartContext} from './ChartContext';
 import {useT} from './LocaleContext';
 
 export function FilterBar() {
-  const {from, to, maxTo, activeFilter, loading, handleFromChange, handleToChange, handleApply, handleQuickFilter} =
+  const {from, to, maxTo, pendingFilter, loading, handleFromChange, handleToChange, handleApply, handleQuickFilter} =
     useChartContext();
   const t = useT();
-
   const today = toDateInput(new Date());
-  const activeStyle = {background: 'var(--on-surface)', color: 'var(--surface)'};
-  const inactiveStyle = {background: 'var(--surface)', color: 'var(--on-surface)'};
 
   return (
-    <div className="flex flex-wrap items-end gap-3">
+    <div className="flex flex-col md:flex-row flex-wrap md:items-end gap-3 md:gap-4 mb-6">
       {/* Быстрые фильтры */}
-      <div className="flex gap-1">
-        {QUICK_FILTERS.map((f) => (
+      <div className="flex border border-on-surface md:w-auto w-full">
+        {QUICK_FILTERS.map((f, i) => (
           <button
             key={f.key}
             onClick={() => handleQuickFilter(f)}
-            className="rounded-md px-3 py-1.5 text-sm font-medium border border-on-surface transition-colors"
-            style={activeFilter === f.key ? activeStyle : inactiveStyle}
+            className={`flex-1 md:flex-initial font-mono text-[10px] md:text-[11px] tracking-[0.08em] uppercase cursor-pointer border-none ${
+              pendingFilter === f.key ? 'bg-on-surface text-surface' : 'bg-transparent text-on-surface'
+            }`}
+            style={{
+              padding: '8px 18px',
+              borderLeft: i === 0 ? 'none' : '1px solid var(--on-surface)'
+            }}
           >
             {t[f.key]}
           </button>
         ))}
       </div>
 
-      <div className="hidden sm:block self-stretch w-px bg-on-surface" />
+      {/* Вертикальный разделитель (только desktop) */}
+      <div className="hidden md:block w-px h-7 bg-on-surface opacity-40 self-end mb-1" />
 
-      {/* Диапазон дат */}
-      <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm text-on-surface">
-          {t.dateFrom}
+      {/* Поля дат + кнопка применить */}
+      <div className="flex flex-col md:flex-row md:items-end gap-2.5 md:gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="font-mono text-[10px] tracking-[0.08em] uppercase opacity-70">{t.dateFrom}</span>
           <input
             type="date"
+            className="gp-date"
             value={from}
             max={today}
             onChange={(e) => handleFromChange(e.target.value)}
-            className="rounded-md border border-on-surface bg-surface text-on-surface px-3 py-1.5 text-sm outline-none"
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm text-on-surface">
-          {t.dateTo}
+        <label className="flex flex-col gap-1">
+          <span className="font-mono text-[10px] tracking-[0.08em] uppercase opacity-70">{t.dateTo}</span>
           <input
             type="date"
+            className="gp-date"
             value={to}
             min={from}
             max={maxTo}
             onChange={(e) => handleToChange(e.target.value)}
-            className="rounded-md border border-on-surface bg-surface text-on-surface px-3 py-1.5 text-sm outline-none"
           />
         </label>
         <button
           onClick={handleApply}
           disabled={loading}
-          className="rounded-md px-4 py-1.5 text-sm font-medium bg-on-surface text-surface disabled:opacity-50"
+          className="self-stretch md:self-auto font-mono text-[10px] md:text-[11px] tracking-[0.08em] uppercase border border-on-surface bg-on-surface text-surface cursor-pointer disabled:opacity-50"
+          style={{padding: '8px 18px'}}
         >
           {loading ? t.applying : t.apply}
         </button>

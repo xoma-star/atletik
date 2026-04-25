@@ -9,15 +9,15 @@ export function ErrorBanner() {
   if (!error) return null;
 
   return (
-    <div className="flex items-start justify-between gap-3 rounded-xl border border-on-surface p-4">
-      <p className="text-sm text-on-surface">{error.message}</p>
-      <div className="flex shrink-0 items-center gap-3">
+    <div className="flex items-start justify-between gap-3 border border-on-surface p-3 md:p-4 font-mono text-[11px] mb-6">
+      <p>{error.message}</p>
+      <div className="flex items-center gap-3 flex-shrink-0">
         {error.retry && (
-          <button onClick={error.retry} className="text-sm font-medium text-on-surface underline underline-offset-2">
+          <button onClick={error.retry} className="underline underline-offset-2 cursor-pointer">
             {t.retry}
           </button>
         )}
-        <button onClick={dismissError} aria-label={t.closeError} className="text-on-surface leading-none text-base">
+        <button onClick={dismissError} aria-label={t.closeError} className="text-[13px] leading-none cursor-pointer">
           ✕
         </button>
       </div>
