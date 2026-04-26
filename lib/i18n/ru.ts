@@ -21,7 +21,7 @@ const ru: Translations = {
   statusBusy: 'людно',
   statusPeak: 'пик',
   forecast: 'прогноз · +1 час',
-  nowInGym: 'сейчас в зале',
+  nowInGym: 'внутри',
   capacityLabel: 'вместимость',
   fillPct: 'заполнения',
   realLine: 'реальные',

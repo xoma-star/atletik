@@ -1,6 +1,6 @@
 'use client';
 
-import {QUICK_FILTERS, toDateInput} from './utils';
+import {QUICK_FILTERS, toDateInput} from '@/lib/visitors';
 import {useChartContext} from './ChartContext';
 import {useT} from './LocaleContext';
 

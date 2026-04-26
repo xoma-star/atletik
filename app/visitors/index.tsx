@@ -6,9 +6,9 @@ import {Header} from './Header';
 import {HeroBlock} from './HeroBlock';
 import {FilterBar} from './FilterBar';
 import {ErrorBanner} from './ErrorBanner';
-import {LineChart} from './LineChart';
+import {LineChart} from './HeroBlock/LineChart';
 import {BarChart} from './BarChart';
-import type {RangePoint, HourlyPoint} from './utils';
+import type {RangePoint, HourlyPoint} from '@/lib/visitors';
 import type {Locale, Translations} from '@/lib/i18n';
 
 type Props = {

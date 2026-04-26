@@ -21,7 +21,7 @@ const en: Translations = {
   statusBusy: 'busy',
   statusPeak: 'peak',
   forecast: 'forecast · +1 hour',
-  nowInGym: 'now in gym',
+  nowInGym: 'inside',
   capacityLabel: 'capacity',
   fillPct: 'fill',
   realLine: 'actual',

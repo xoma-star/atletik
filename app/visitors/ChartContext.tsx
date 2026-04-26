@@ -14,32 +14,59 @@ import {
   buildForecast,
   RangePoint,
   HourlyPoint
-} from './utils';
+} from '@/lib/visitors';
 
-type ErrorState = {message: string; retry: (() => void) | null} | null;
+type ErrorState = {
+  /** Текст ошибки для отображения пользователю. */
+  message: string;
+  /** Колбэк повтора запроса, или `null` если повтор невозможен. */
+  retry: (() => void) | null;
+} | null;
 
 type ChartContextValue = {
+  /** Начальная дата выбранного диапазона (YYYY-MM-DD). */
   from: string;
+  /** Конечная дата выбранного диапазона (YYYY-MM-DD). */
   to: string;
+  /** Максимально допустимая конечная дата (`from + MAX_DAYS` или сегодня). */
   maxTo: string;
+  /** Начальная дата последнего применённого диапазона. */
   appliedFrom: string;
+  /** Конечная дата последнего применённого диапазона. */
   appliedTo: string;
+  /** Активный быстрый фильтр или `''` если выбран ручной диапазон. */
   activeFilter: FilterKey | '';
+  /** Фильтр, нажатый пользователем, до завершения загрузки. */
   pendingFilter: FilterKey | '';
+  /** Данные линейного графика за выбранный период. */
   rangeData: RangePoint[];
+  /** Данные столбчатого графика — средняя загрузка по часам для выбранного дня недели. */
   hourlyData: HourlyPoint[];
+  /** Выбранный день недели для столбчатого графика (0 = воскресенье … 6 = суббота). */
   selectedDow: number;
+  /** `true` во время выполнения запроса к API. */
   loading: boolean;
+  /** Текущая ошибка с возможностью повтора, или `null`. */
   error: ErrorState;
+  /** Текущее количество посетителей в зале, или `null` если данные недоступны. */
   current: number | null;
+  /** ISO-строка времени последнего обновления данных, или `null`. */
   lastUpdated: string | null;
+  /** Точки прогноза загрузности зала на ближайшее время. */
   forecastPoints: ForecastPoint[];
+  /** Максимальная вместимость зала (константа CAPACITY). */
   capacity: number;
+  /** Сбрасывает текущую ошибку. */
   dismissError: () => void;
+  /** Обновляет начальную дату и корректирует конечную, если она выходит за MAX_DAYS. */
   handleFromChange: (v: string) => void;
+  /** Обновляет конечную дату диапазона. */
   handleToChange: (v: string) => void;
+  /** Загружает данные для текущего диапазона `from–to`. */
   handleApply: () => void;
+  /** Выбирает быстрый фильтр и загружает данные для его диапазона. */
   handleQuickFilter: (f: QuickFilter) => void;
+  /** Переключает день недели и загружает усреднённые данные для него. */
   handleDowChange: (dow: number) => void;
 };
 
@@ -52,10 +79,15 @@ export function useChartContext(): ChartContextValue {
 }
 
 type InitialData = {
+  /** Начальные данные линейного графика (передаются с сервера через SSR). */
   rangeData: RangePoint[];
+  /** Начальные данные столбчатого графика (передаются с сервера через SSR). */
   hourlyData: HourlyPoint[];
+  /** Ошибка первоначальной загрузки, или `null`. */
   initialError?: string | null;
+  /** Текущее количество посетителей на момент SSR, или `null`. */
   initialCurrent?: number | null;
+  /** Время последнего обновления на момент SSR, или `null`. */
   initialLastUpdated?: string | null;
 };
 
