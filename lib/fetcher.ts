@@ -1,4 +1,4 @@
-import {Agent} from 'undici';
+import {Agent, fetch} from 'undici';
 
 const CLUB_ID = 'deb54b89-90d2-11e9-812a-0050568b0e0b';
 const API_KEY = '3d5bf735-dd0c-4d9f-834b-6a7b3fa1cf4c';
