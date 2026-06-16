@@ -1,3 +1,5 @@
+import {Agent} from 'undici';
+
 const CLUB_ID = 'deb54b89-90d2-11e9-812a-0050568b0e0b';
 const API_KEY = '3d5bf735-dd0c-4d9f-834b-6a7b3fa1cf4c';
 
@@ -33,7 +35,8 @@ export async function fetchVisitorCount() {
       'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
       Accept: 'application/json, text/javascript, */*; q=0.01'
     },
-    body: body.toString()
+    body: body.toString(),
+    dispatcher: new Agent({connect: {rejectUnauthorized: false}})
   });
 
   if (!response.ok) {
